@@ -83,7 +83,7 @@ class Window: JFrame() {
         val resultado = evaluar(mTfNums)
 
         remove(tTabla)
-        tTabla.setProperties(50, 310, 1170, 380, resultado, 300, 95*(mTfNums.size - 1))
+        tTabla.setProperties(50, 310, 1170, 380, resultado, 350, 95*(mTfNums.size - 1))
         add(tTabla)
     }
 

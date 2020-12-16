@@ -1,5 +1,7 @@
 import javax.swing.JTextField
 
+val letras = listOf('A', 'B', 'C', 'D', 'E', 'F', 'G')
+
 fun evaluar(mTfNums: List<JTextField?>): Array<Array<String>> {
 
     val campos = mTfNums.size
@@ -52,7 +54,13 @@ fun evaluar(mTfNums: List<JTextField?>): Array<Array<String>> {
                             4 -> "(DE)"
                             else -> "(EF)"
                         }
-                        else -> ""
+                        else -> when (k-i) {
+                            0 -> s[i+1][i+2].completar(j-i)//j cantidad de letras en total y se agregan a la derecha
+                            1 -> s[i][i+1]
+                            2 -> s[i][i+2].completar(3)
+                            3 -> s[i][i+3].completar(4)
+                            else -> s[i][i+4].completar(5)
+                        }
                     }
                     if (n[i][j] < n[i][k] + n[k+1][j] + d[i]*d[k+1]*d[j+1]){
                         asignado = n[i][j]
@@ -62,7 +70,7 @@ fun evaluar(mTfNums: List<JTextField?>): Array<Array<String>> {
                     }
                     n[i][j]=asignado
                     str += "k=$k Asignó $asignado.<br>"
-                    str += "min(${n[i][j]}, ${n[i][k]}  + ${n[k+1][j]} ${s[i][j]} + ${d[i]}*${d[k+1]}*${d[j+1]})<br>"
+                    str += "min(${n[i][j]}, ${n[i][k]} ${s[i][j].complemento(j-i)} + ${n[k+1][j]} ${s[i][j]} + ${d[i]}*${d[k+1]}*${d[j+1]})<br>"
                     str += "${s[i][j]}<br>"
                     str += "<br>"
                 }
@@ -73,6 +81,40 @@ fun evaluar(mTfNums: List<JTextField?>): Array<Array<String>> {
         }
     }
     return result
+}
+
+private fun String.completar(cantidadLetras: Int): String {
+    if(cantidadLetras == 2) {
+        return this
+    }
+    if(cantidadLetras > 2) {
+        val first: Char
+        var i = 0
+        while (true){
+            if(this[i].isLetter()){
+                first = this[i]
+                break
+            }
+            i++
+        }
+        var str = this
+        var add = false
+        var pendientes = cantidadLetras - (this.length+2)/3
+        for (j in letras.indices) {
+            if(first == letras[j])
+                add = true
+            if (!str.contains(letras[j]) && pendientes>0 && add == true) {
+                str = "($str${letras[j]})"
+                pendientes--
+            }
+        }
+        return str
+    }
+    else return "Z"
+}
+
+private fun String.complemento(cantidadLetras: Int): String {
+    return ""
 }
 
 private fun JTextField?.segundoValor(): Int {
