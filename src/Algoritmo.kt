@@ -1,3 +1,4 @@
+import javax.swing.JOptionPane
 import javax.swing.JTextField
 
 val letras = listOf('A', 'B', 'C', 'D', 'E', 'F', 'G')
@@ -8,6 +9,14 @@ fun evaluar(mTfNums: List<JTextField?>): Array<Array<String>> {
     val n = Array(campos) { IntArray(campos) }
     val s = Array(campos) { Array(campos){"(AB)"} }
     val result = Array(campos + 1) { Array(campos + 1){"∞"} }
+
+    //validar dimensiones
+    for(i in mTfNums.indices) {
+        if (i>0 && mTfNums[i-1].segundoValor() != mTfNums[i].primerValor()){
+            JOptionPane.showMessageDialog(null, "Dimensiones incorrectas", "ERROR", JOptionPane.ERROR_MESSAGE)
+            return Array(1){ Array(1){""}}
+        }
+    }
 
     //tabla
     result[0][0] = "i / j"
@@ -70,7 +79,9 @@ fun evaluar(mTfNums: List<JTextField?>): Array<Array<String>> {
                     }
                     n[i][j]=asignado
                     str += "k=$k Asignó $asignado.<br>"
-                    str += "min(${n[i][j]}, ${n[i][k]} ${s[i][j].complemento(j-i)} + ${n[k+1][j]} ${s[i][j]} + ${d[i]}*${d[k+1]}*${d[j+1]})<br>"
+                    str += "min(${n[i][j]}, ${n[i][k]} " +
+                            "${if(n[k+1][j] != 0) s[i][j].complemento(j-i) else if(n[i][k] != 0) s[i][j] else ""} + " +
+                            "${n[k+1][j]} ${if(n[k+1][j] != 0) s[i][j] else s[i][j].complemento(j-i)} + ${d[i]}*${d[k+1]}*${d[j+1]})<br>"
                     str += "${s[i][j]}<br>"
                     str += "<br>"
                 }
@@ -114,7 +125,18 @@ private fun String.completar(cantidadLetras: Int): String {
 }
 
 private fun String.complemento(cantidadLetras: Int): String {
-    return ""
+    var str = ""
+    var pendientes = cantidadLetras - (this.length+2)/3
+    for (j in letras.indices) {
+        if (!this.contains(letras[j]) && pendientes>0) {
+            if(str.length > 0)
+                str = "($str${letras[j]})"
+            if(str.length == 0)
+                str = "${letras[j]}"
+            pendientes--
+        }
+    }
+    return str
 }
 
 private fun JTextField?.segundoValor(): Int {
