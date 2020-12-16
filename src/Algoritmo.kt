@@ -1,14 +1,13 @@
 import javax.swing.JOptionPane
 import javax.swing.JTextField
 
-val letras = listOf('A', 'B', 'C', 'D', 'E', 'F', 'G')
+var letras = listOf('A', 'B', 'C', 'D', 'E', 'F') //letras usadas para nombrar a las matrices
 
 fun evaluar(mTfNums: List<JTextField?>): Array<Array<String>> {
 
-    val campos = mTfNums.size
-    val n = Array(campos) { IntArray(campos) }
-    val s = Array(campos) { Array(campos){"(AB)"} }
-    val result = Array(campos + 1) { Array(campos + 1){"∞"} }
+    val campos = mTfNums.size //cantidad de campos ingresados
+    val result = Array(campos + 1) { Array(campos + 1){"∞"} } //matriz que se devuelve con todos los datos obtenidos
+    val n = Array(campos) { IntArray(campos) } //matriz de valores asignados
 
     //validar dimensiones
     for(i in mTfNums.indices) {
@@ -48,95 +47,127 @@ fun evaluar(mTfNums: List<JTextField?>): Array<Array<String>> {
                 mTfNums[i].primerValor()
     }
 
+    //matriz de cadenas de operaciones
+    val s = Array(campos) { Array(campos){""} }
+    for (j in 0 until campos){
+        for (i in 0 until campos){
+            if (j==i+1){
+                s[i][j] = when (j) {
+                    1 -> "(AB)"
+                    2 -> "(BC)"
+                    3 -> "(CD)"
+                    4 -> "(DE)"
+                    else -> "(EF)"
+                }
+            }
+        }
+    }
+
     //calculo
+    var min = "" //minimo que varia de acuerdo a cada comparacion k
+
     for(j in 0 until campos) {
         for(i in campos-1 downTo 0) {
             if(j>i) {
                 var str = "<html>"
                 for (k in i until j) {
-                    var asignado : Int
-                    s[i][j] = when {
-                        j==i+1 -> when (j) {
-                            1 -> "(AB)"
-                            2 -> "(BC)"
-                            3 -> "(CD)"
-                            4 -> "(DE)"
-                            else -> "(EF)"
-                        }
-                        else -> when (k-i) {
-                            0 -> s[i+1][i+2].completar(j-i)//j cantidad de letras en total y se agregan a la derecha
-                            1 -> s[i][i+1]
-                            2 -> s[i][i+2].completar(3)
-                            3 -> s[i][i+3].completar(4)
-                            else -> s[i][i+4].completar(5)
-                        }
+                    var asignado : Int  //valor que asigna cada comparacion k
+                    var operacion1 = "" //operacion de la que viene n[i][k]
+                    var operacion2 = "" //operacion de la que viene n[k+1][j]
+
+                    if(j-i != 1) {
+                        if (n[i][k] == 0)
+                            operacion1 = ""
+                        else
+                            operacion1 = s[i][k]
+
+                        if (n[k + 1][j] == 0)
+                            operacion2 = ""
+                        else
+                            operacion2 = s[k + 1][j]
                     }
-                    if (n[i][j] < n[i][k] + n[k+1][j] + d[i]*d[k+1]*d[j+1]){
+
+                    if (n[i][j] < n[i][k] + n[k+1][j] + d[i]*d[k+1]*d[j+1]){ //comparacion k
                         asignado = n[i][j]
                     }
                     else {
                         asignado = n[i][k] + n[k+1][j] + d[i]*d[k+1]*d[j+1]
+                        if(j-i != 1){
+                            if(n[i][k] != 0 && n[k + 1][j] != 0)
+                                min = "[$operacion1$operacion2]".completar(j - i + 1, j)
+                            else
+                                min = "$operacion1$operacion2".completar(j - i + 1, j)
+                        }
+                        else
+                            min = s[i][j]
                     }
+
+                    val temp = n[i][j]
                     n[i][j]=asignado
+
+                    //guardar resultados
                     str += "k=$k Asignó $asignado.<br>"
-                    str += "min(${n[i][j]}, ${n[i][k]} " +
-                            "${if(n[k+1][j] != 0) s[i][j].complemento(j-i) else if(n[i][k] != 0) s[i][j] else ""} + " +
-                            "${n[k+1][j]} ${if(n[k+1][j] != 0) s[i][j] else s[i][j].complemento(j-i)} + ${d[i]}*${d[k+1]}*${d[j+1]})<br>"
-                    str += "${s[i][j]}<br>"
+                    str += "min(${if (temp == Int.MAX_VALUE) "∞" else temp}, " +
+                            "${n[i][k]} $operacion1 + ${n[k+1][j]} $operacion2 + ${d[i]}*${d[k+1]}*${d[j+1]})<br>"
+                    str += "${min}<br>"
                     str += "<br>"
                 }
-                str += "= ${n[i][j]} ${s[i][j]}<br>"
+
+                //ultimos datos a guardar en celda
+                str += "= ${n[i][j]} ${min}<br>"
                 str += "</html>"
+                s[i][j] = min
                 result[i+1][j+1] = str
             }
         }
     }
+
+    //retorno
     return result
 }
 
-private fun String.completar(cantidadLetras: Int): String {
-    if(cantidadLetras == 2) {
+private fun String.completar(cantidadLetras: Int, j: Int): String {
+    if (this.isEmpty())
+        return ""
+
+    if(cantidadLetras == 2)
         return this
-    }
+
     if(cantidadLetras > 2) {
-        val first: Char
-        var i = 0
-        while (true){
-            if(this[i].isLetter()){
-                first = this[i]
+        var first = ' '
+        for (i in this){
+            if(i.isLetter()){
+                first = i
                 break
             }
-            i++
         }
         var str = this
         var add = false
         var pendientes = cantidadLetras - (this.length+2)/3
-        for (j in letras.indices) {
-            if(first == letras[j])
+
+        //agrega a la derecha
+        for (i in 0 .. j) {
+            if(first == letras[i])
                 add = true
-            if (!str.contains(letras[j]) && pendientes>0 && add == true) {
-                str = "($str${letras[j]})"
+
+            if (!str.contains(letras[i]) && pendientes>0 && add == true) {
+                str = "($str${letras[i]})"
                 pendientes--
+            }
+        }
+
+        //agrega a la izquierda
+        if (pendientes > 0){
+            for (i in j downTo 0) {
+                if (!str.contains(letras[i]) && pendientes>0) {
+                    str = "(${letras[i]}$str)"
+                    pendientes--
+                }
             }
         }
         return str
     }
-    else return "Z"
-}
-
-private fun String.complemento(cantidadLetras: Int): String {
-    var str = ""
-    var pendientes = cantidadLetras - (this.length+2)/3
-    for (j in letras.indices) {
-        if (!this.contains(letras[j]) && pendientes>0) {
-            if(str.length > 0)
-                str = "($str${letras[j]})"
-            if(str.length == 0)
-                str = "${letras[j]}"
-            pendientes--
-        }
-    }
-    return str
+    else return "ERROR"
 }
 
 private fun JTextField?.segundoValor(): Int {
