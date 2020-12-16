@@ -10,7 +10,7 @@ import javax.swing.*
 
 class Window: JFrame() {
 
-    private val pSuperior = SPanel(50, 120, 1170, 205)
+    private val pSuperior = SPanel(50, 80, 1170, 205)
     private val tfNumMatrices = JTextField()
     private val lMessage = SLabel(40, 140, 1, 1)
     private val mTfNums = mutableListOf<JTextField>()
@@ -80,10 +80,10 @@ class Window: JFrame() {
     }
 
     private fun calcular() {
-        val resultado = Algoritmo.evaluar(mTfNums)
+        val resultado = evaluar(mTfNums)
 
         remove(tTabla)
-        tTabla.setProperties(50, 370, 1170, 300, resultado, 300, 300)
+        tTabla.setProperties(50, 310, 1170, 380, resultado, 300, 95*(mTfNums.size - 1))
         add(tTabla)
     }
 

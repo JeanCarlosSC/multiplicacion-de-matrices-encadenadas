@@ -59,6 +59,7 @@ class STable: JScrollPane {
         viewport.background = semiDarkGrayBlue
         border = semiDarkGray2Border
         verticalScrollBar.setUI(getCustomScroll())
+        horizontalScrollBar.setUI(getCustomScroll())
     }
 
 }
